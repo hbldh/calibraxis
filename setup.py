@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+The setup script for the calibraxis package.
+
+.. moduleauthor:: hbldh <henrik.blidh@nedomkull.com>
+
+Created on 2016-04-08
+
+'''
+
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+
+import os
+import sys
+import re
+from codecs import open
+
+from setuptools import setup, find_packages
+
+
+
+with open('calibraxis/__init__.py', 'r') as fd:
+    version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                        fd.read(), re.MULTILINE).group(1)
+
+
+def read(f):
+    return open(f, encoding='utf-8').read()
+
+
+setup(
+    name='calibraxis',
+    version=version,
+    author='Henrik Blidh',
+    author_email='henrik.blidh@nedobmkull.com',
+    url='https://github.com/hbldh/calibraxis',
+    description='Autocalibration method for accelerometers, implemented in Python.',
+    long_description=read('README.rst'),
+    license='MIT',
+    platforms=['Linux'],
+    keywords=['Calibration', 'Accelerometers'],
+    classifiers=[
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.4',
+        'Operating System :: POSIX :: Linux',
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+    ],
+    packages=find_packages(exclude=['tests', 'docs', 'examples']),
+    # Adding MbientLab's Python code as package data since it is copied
+    # to folder after ``find_package`` is run.
+    package_data={
+    },
+    install_requires=[
+        'numpy>=1.9.0',
+        'six>=1.9.0'
+    ],
+    ext_modules=[],
+    entry_points={}
+)

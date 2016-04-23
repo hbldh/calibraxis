@@ -1,0 +1,21 @@
+language: python
+sudo: false
+python:
+  - 2.6
+  - 2.7
+  - 3.3
+  - 3.4
+  - 3.5
+branches:
+  only:
+    - master
+    - develop
+install:
+install:
+  - "pip install pytest"
+  - "pip install pytest-cov"
+  - "pip install python-coveralls"
+  - "pip install -e ."
+script: py.test tests/ --cov calibraxis --cov-report term-missing
+after_success:
+  coveralls
