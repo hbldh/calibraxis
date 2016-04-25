@@ -19,11 +19,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import numpy as np
 import pytest
+
+from calibraxis import Calibraxis
 
 
 @pytest.fixture(scope='module')
 def points_1():
+    # Measuring range +/-8
     return np.array([[-4772.38754098, 154.04459016, -204.39081967],
                      [3525.0346179, -68.64924886, -34.54604833],
                      [-658.17681729, -4137.60248854, -140.49377865],
@@ -51,10 +55,28 @@ def points_2():
 
 
 def test_calibration_points_1(points_1):
-    calibrate_accelerometer_with_stored_points(self.test_points_1)
-    np.testing.assert_almost_equal(sc._acc_calibration_errors[-1], 0.0, 2)
+    c = Calibraxis(8, 16, verbose=True)
+    c.add_points(points_1)
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._acc_calibration_errors[-1], 0.0, 2)
+
+
+def test_calibration_points_1_scaled(points_1):
+    c = Calibraxis(8, None, verbose=True)
+    c.add_points(points_1 / ((2 ** 15) / 8.))
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._acc_calibration_errors[-1], 0.0, 2)
 
 
 def test_calibration_points_2(points_2):
-    calibrate_accelerometer_with_stored_points(self.test_points_2)
-    np.testing.assert_almost_equal(sc._acc_calibration_errors[-1], 0.0, 2)
+    c = Calibraxis(16, 16, verbose=True)
+    c.add_points(points_2)
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._acc_calibration_errors[-1], 0.0, 2)
+
+
+def test_calibration_points_2_scaled(points_2):
+    c = Calibraxis(16, None, verbose=True)
+    c.add_points(points_2 / ((2 ** 15) / 16.))
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._acc_calibration_errors[-1], 0.0, 2)
