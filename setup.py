@@ -46,7 +46,6 @@ setup(
     description='Autocalibration method for accelerometers, implemented in Python.',
     long_description=read('README.rst'),
     license='MIT',
-    platforms=['Linux'],
     keywords=['Calibration', 'Accelerometers'],
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -68,7 +67,6 @@ setup(
     test_suite="tests",
     zip_safe=False,
     include_package_data=True,
-    platforms='any',
     install_requires=[
         'numpy>=1.9.0',
         'six>=1.9.0'
