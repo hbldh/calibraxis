@@ -21,8 +21,14 @@ from codecs import open
 from setuptools import setup, find_packages
 
 
+if sys.argv[-1] == 'publish':
+    os.system('python setup.py register')
+    os.system('python setup.py sdist upload')
+    os.system('python setup.py bdist_wheel upload')
+    sys.exit()
 
-with open('calibraxis/__init__.py', 'r') as fd:
+
+with open('calibraxis.py', 'r') as fd:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
                         fd.read(), re.MULTILINE).group(1)
 
@@ -43,21 +49,32 @@ setup(
     platforms=['Linux'],
     keywords=['Calibration', 'Accelerometers'],
     classifiers=[
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
-        'Operating System :: POSIX :: Linux',
         'Development Status :: 4 - Beta',
+        'Operating System :: OS Independent',
+        'Intended Audience :: Science/Research',
         'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Topic :: Software Development',
+        'Topic :: Scientific/Engineering',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
     ],
-    packages=find_packages(exclude=['tests', 'docs', 'examples']),
-    # Adding MbientLab's Python code as package data since it is copied
-    # to folder after ``find_package`` is run.
-    package_data={
-    },
+    py_modules=['calibraxis'],
+    test_suite="tests",
+    zip_safe=False,
+    include_package_data=True,
+    platforms='any',
     install_requires=[
         'numpy>=1.9.0',
         'six>=1.9.0'
     ],
+    setup_requires=['pytest-runner', ],
+    tests_require=['pytest', ],
     ext_modules=[],
     entry_points={}
 )
