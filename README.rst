@@ -91,5 +91,6 @@ References
     IEEE Transactions on, vol.58, no.6, pp.2034,2041, June 2009
     <http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=4655611&isnumber=4919430>`_
 
-.. [#MLCENTRAL] `Matlab File Central <http://se.mathworks.com/matlabcentral/
-    fileexchange/33252-mems-accelerometer-calibration-using-gauss-newton-method>`_.
+.. [#MLCENTRAL] `Matlab File Central: MEMS Accelerometer Calibration using Gauss Newton Method
+    <http://se.mathworks.com/matlabcentral/fileexchange/
+    33252-mems-accelerometer-calibration-using-gauss-newton-method>`_
