@@ -6,7 +6,7 @@
 
 .. module:: test_standard
    :platform: Unix, Windows
-   :synopsis: 
+   :synopsis:
 
 .. moduleauthor:: hbldh <henrik.blidh@nedomkull.com>
 
@@ -19,8 +19,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-import numpy as np
+import re
+
 import pytest
+import numpy as np
 
 from calibraxis import Calibraxis
 
@@ -55,28 +57,122 @@ def points_2():
 
 
 def test_calibration_points_1(points_1):
-    c = Calibraxis(8, 16, verbose=True)
+    c = Calibraxis(verbose=False)
     c.add_points(points_1)
     c.calibrate_accelerometer()
-    np.testing.assert_almost_equal(c._acc_calibration_errors[-1], 0.0, 2)
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
 
 
 def test_calibration_points_1_scaled(points_1):
-    c = Calibraxis(8, None, verbose=True)
+    c = Calibraxis(verbose=False)
     c.add_points(points_1 / ((2 ** 15) / 8.))
     c.calibrate_accelerometer()
-    np.testing.assert_almost_equal(c._acc_calibration_errors[-1], 0.0, 2)
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
 
 
 def test_calibration_points_2(points_2):
-    c = Calibraxis(16, 16, verbose=True)
+    c = Calibraxis(verbose=False)
     c.add_points(points_2)
     c.calibrate_accelerometer()
-    np.testing.assert_almost_equal(c._acc_calibration_errors[-1], 0.0, 2)
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
 
 
 def test_calibration_points_2_scaled(points_2):
-    c = Calibraxis(16, None, verbose=True)
+    c = Calibraxis(verbose=False)
     c.add_points(points_2 / ((2 ** 15) / 16.))
     c.calibrate_accelerometer()
-    np.testing.assert_almost_equal(c._acc_calibration_errors[-1], 0.0, 2)
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
+
+
+def test_recalibration_points_2(points_2):
+    c = Calibraxis(verbose=False)
+    points = points_2 / ((2 ** 15) / 16.)
+    for p in points[:-1, :]:
+        c.add_points(p)
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
+    c.add_points(points[-1, :])
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
+
+
+def test_add_points_1(points_1):
+    c = Calibraxis(verbose=False)
+    points = points_1 / ((2 ** 15) / 8.)
+    for p in points:
+        c.add_points(p)
+    np.testing.assert_almost_equal(np.linalg.norm(np.array(c._calibration_points) - points), 0.0, 6)
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
+
+
+def test_add_points_2(points_1):
+    c = Calibraxis(verbose=False)
+    points = points_1 / ((2 ** 15) / 8.)
+    for p in points:
+        c.add_points(list(p))
+    np.testing.assert_almost_equal(np.linalg.norm(np.array(c._calibration_points) - points), 0.0, 6)
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
+
+
+def test_add_points_3(points_1):
+    c = Calibraxis(verbose=False)
+    points = points_1 / ((2 ** 15) / 8.)
+    for p in points:
+        c.add_points(tuple(p))
+    np.testing.assert_almost_equal(np.linalg.norm(np.array(c._calibration_points) - points), 0.0, 6)
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
+
+
+def test_add_points_4(points_2):
+    c = Calibraxis(verbose=False)
+    points = points_2 / ((2 ** 15) / 8.)
+    c.add_points(points.tolist())
+    np.testing.assert_almost_equal(np.linalg.norm(np.array(c._calibration_points) - points), 0.0, 6)
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
+
+
+def test_add_points_5(points_2):
+    c = Calibraxis(verbose=False)
+    points = points_2 / ((2 ** 15) / 8.)
+    c.add_points(points)
+    c.add_points([])
+    np.testing.assert_almost_equal(np.linalg.norm(np.array(c._calibration_points) - points), 0.0, 6)
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
+
+
+def test_apply(points_1):
+    c = Calibraxis(verbose=False)
+    c.add_points(points_1)
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(np.linalg.norm(c.apply(points_1[0, :])), 1.0, 2)
+
+
+def test_batch_apply(points_1):
+    c = Calibraxis(verbose=False)
+    c.add_points(points_1)
+    c.calibrate_accelerometer()
+    out = c.batch_apply(points_1)
+    normed = np.sqrt((np.array(out) ** 2).sum(axis=1))
+    np.testing.assert_array_almost_equal(normed, 1.0, 2)
+
+
+def test_error_to_few_points(points_2):
+    c = Calibraxis(verbose=False)
+    for p in points_2[:5, :]:
+        c.add_points(p)
+    with pytest.raises(ValueError):
+        c.calibrate_accelerometer()
+
+
+def test_verbose_prints_progress(points_2, capsys):
+    c = Calibraxis(verbose=True)
+    c.add_points(points_2)
+    c.calibrate_accelerometer()
+    out, err = capsys.readouterr()
+    for row in filter(None, out.split('\n')):
+        assert re.match('^([0-9]+):\s([0-9\-\.e]+)\s*(\([0-9\s\-\.e,]+\))$', row)

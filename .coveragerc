@@ -1,9 +1,6 @@
 [run]
 branch = True
-source = autocalibrate
-include = */autocalibrate/*
+source = calibraxis
+include = */calibraxis/*
 omit =
-	*/python?.?/*
-    */site-packages/nose/*
     */setup.py
-    autocalibrate/sample/*
