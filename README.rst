@@ -12,16 +12,17 @@ Calibraxis
 .. image:: https://coveralls.io/repos/github/hbldh/calibraxis/badge.svg?branch=master
     :target: https://coveralls.io/github/hbldh/calibraxis?branch=master
 
-An Python/NumPy implementation of the accelerometer calibration method
-described in  [#FRO2009]_. This is a Python reimplementation of the
-Matlab routine found at [#MLCENTRAL]_.
+An Python/NumPy reimplementation of the accelerometer calibration method
+the Matlab routine found at [#MLCENTRAL]_. It implements the autocalibration
+method described in [#FRO2009]_ and handles arbitrary
+accelerometer data in any measuring range.
 
 Installation
 ------------
 
 .. code:: bash
 
-    $ pip install git+git://github.com/hbldh/calibraxis.git
+    $ pip install calibraxis
 
 
 Usage

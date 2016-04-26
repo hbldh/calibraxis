@@ -22,9 +22,9 @@ import six
 import numpy as np
 
 # Version information.
-__version__ = '0.2.0'
+__version__ = '0.2.1.dev1'
 version = __version__  # backwards compatibility name
-version_info = (0, 2, 0)
+version_info = (0, 2, 1, '.dev1')
 
 
 class Calibraxis(object):

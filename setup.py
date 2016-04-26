@@ -43,7 +43,7 @@ setup(
     author='Henrik Blidh',
     author_email='henrik.blidh@nedobmkull.com',
     url='https://github.com/hbldh/calibraxis',
-    description='Autocalibration method for accelerometers, implemented in Python.',
+    description='Autocalibration method for accelerometer data',
     long_description=read('README.rst'),
     license='MIT',
     keywords=['Calibration', 'Accelerometers'],
