@@ -3,6 +3,12 @@ Calibraxis
 
 .. image:: https://travis-ci.org/hbldh/calibraxis.svg?branch=master
     :target: https://travis-ci.org/hbldh/calibraxis
+.. image:: http://img.shields.io/pypi/v/calibraxis.svg
+    :target: https://pypi.python.org/pypi/calibraxis/
+.. image:: http://img.shields.io/pypi/dm/calibraxis.svg
+    :target: https://pypi.python.org/pypi/calibraxis/
+.. image:: http://img.shields.io/pypi/l/calibraxis.svg
+    :target: https://pypi.python.org/pypi/calibraxis/
 .. image:: https://coveralls.io/repos/github/hbldh/calibraxis/badge.svg?branch=master
     :target: https://coveralls.io/github/hbldh/calibraxis?branch=master
 
