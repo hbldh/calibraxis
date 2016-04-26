@@ -16,13 +16,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import copy
+
 import six
 import numpy as np
 
 # Version information.
-__version__ = '0.1.1.dev2'
+__version__ = '0.2.0rc1'
 version = __version__  # backwards compatibility name
-version_info = (0, 1, 1, 'dev2')
+version_info = (0, 2, 0, 'rc1')
 
 
 class Calibraxis(object):
@@ -114,10 +116,10 @@ class Calibraxis(object):
                 if isinstance(points[0], (list, tuple, np.ndarray)):
                     # Multiple points sent as list of lists.
                     for p in points:
-                        self._calibration_points.append(p)
+                        self._calibration_points.append(copy.deepcopy(p))
                 else:
                     # Assume single point sent in as list/tuple/array.
-                    self._calibration_points.append(points)
+                    self._calibration_points.append(copy.deepcopy(points))
             else:
                 # Empty list/tuple. Skip.
                 pass

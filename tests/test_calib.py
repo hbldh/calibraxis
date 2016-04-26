@@ -126,6 +126,25 @@ def test_add_points_3(points_1):
     np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
 
 
+def test_add_points_4(points_2):
+    c = Calibraxis(verbose=False)
+    points = points_2 / ((2 ** 15) / 8.)
+    c.add_points(points.tolist())
+    np.testing.assert_almost_equal(np.linalg.norm(np.array(c._calibration_points) - points), 0.0, 6)
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
+
+
+def test_add_points_5(points_2):
+    c = Calibraxis(verbose=False)
+    points = points_2 / ((2 ** 15) / 8.)
+    c.add_points(points)
+    c.add_points([])
+    np.testing.assert_almost_equal(np.linalg.norm(np.array(c._calibration_points) - points), 0.0, 6)
+    c.calibrate_accelerometer()
+    np.testing.assert_almost_equal(c._calibration_errors[-1], 0.0, 2)
+
+
 def test_apply(points_1):
     c = Calibraxis(verbose=False)
     c.add_points(points_1)
@@ -133,11 +152,11 @@ def test_apply(points_1):
     np.testing.assert_almost_equal(np.linalg.norm(c.apply(points_1[0, :])), 1.0, 2)
 
 
-def test_batch_apply(points_2):
+def test_batch_apply(points_1):
     c = Calibraxis(verbose=False)
-    c.add_points(points_2)
+    c.add_points(points_1)
     c.calibrate_accelerometer()
-    out = c.batch_apply(points_2)
+    out = c.batch_apply(points_1)
     normed = np.sqrt((np.array(out) ** 2).sum(axis=1))
     np.testing.assert_array_almost_equal(normed, 1.0, 2)
 
