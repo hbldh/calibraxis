@@ -22,9 +22,9 @@ import six
 import numpy as np
 
 # Version information.
-__version__ = '0.2.0rc1'
+__version__ = '0.2.0rc2'
 version = __version__  # backwards compatibility name
-version_info = (0, 2, 0, 'rc1')
+version_info = (0, 2, 0, 'rc2')
 
 
 class Calibraxis(object):
@@ -86,8 +86,6 @@ class Calibraxis(object):
     `Matlab File Central <http://se.mathworks.com/matlabcentral/fileexchange/
     33252-mems-accelerometer-calibration-using-gauss-newton-method>`_.
 
-    :param int measuring_range: The operational range of the accelerometer,
-        e.g. 8 in the case of +/- 8g range.
     :param bool verbose: Print optimization progress data.
 
     """
