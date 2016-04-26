@@ -20,35 +20,87 @@ import six
 import numpy as np
 
 # Version information.
-__version__ = '0.1.1.dev1'
+__version__ = '0.1.1.dev2'
 version = __version__  # backwards compatibility name
-version_info = (0, 1, 0, 'dev1')
+version_info = (0, 1, 1, 'dev2')
 
 
 class Calibraxis(object):
     """Calibration object, used for storing and applying the
     calibration parameters.
 
+    Computes the Zero G levels, Sensitivity, Scale factor Matrix and the
+    bias vector of a MEMS accelerometer.
+
+    The procedure exploits the fact that, in static conditions, the
+    modulus of the accelerometer output vector matches that of the
+    gravity acceleration. The calibration model incorporates the bias
+    and scale factor for each axis and the cross-axis symmetrical
+    factors. The parameters are computed through Gauss-Newton
+    nonlinear optimization.
+
+    The mathematical model used is  :math:`a = M(r - b)`
+    where :math:`M` and :math:`b` are scale factor matrix and
+    bias vector respectively and :math:`r` is the raw accelerometer
+    reading.
+
+    .. math::
+
+        M = \begin{matrix}
+                M_{xx} & M_{xy} & M_{xz} \\
+                M_{yx} & M_{yy} & M_{yz} \\
+                M_{zx} & M_{zy} & M_{zz}
+            \end{matrix}
+
+        b = \begin{matrix}
+                b_{x} \\
+                b_{y} \\
+                b_{z}
+            \end{matrix}
+
+    where
+
+    .. math::
+
+        M_{xy} = M_{yx}
+
+        M_{xz} = M_{zx}
+
+        M_{yz} = M_{zy}.
+
+    The diagonal elements of M represent the scale factors along the
+    three axes, whereas the other elements of M are called cross-axis
+    factors. These terms allow describing both the axes’ misalignment
+    and the crosstalk effect between different channels caused
+    by the sensor electronics. In an ideal world, :math:`M = I` and
+    :math:`B = \mathbb{0}`.
+
+    Reference:
+    Iuri Frosio, Federico Pedersini, N. Alberto Borghese
+    "Autocalibration of MEMS Accelerometers"
+    IEEE TRANSACTIONS ON INSTRUMENTATION AND MEASUREMENT, VOL. 58, NO. 6, JUNE 2009
+
+    This is a Python reimplementation of the Matlab routines found at
+    `Matlab File Central <http://se.mathworks.com/matlabcentral/fileexchange/
+    33252-mems-accelerometer-calibration-using-gauss-newton-method>`_.
+
     :param int measuring_range: The operational range of the accelerometer,
         e.g. 8 in the case of +/- 8g range.
-    :param int resolution: Number of bits the accelerometer returns data in.
-        Used for calibrating against raw data.
     :param bool verbose: Print optimization progress data.
 
     """
 
-    def __init__(self, measuring_range, resolution=None, verbose=False):
+    def __init__(self, verbose=False):
+
         self._points = []
-        self._resolution = resolution
-        self._range = measuring_range
         self._verbose = verbose
 
         # Accelerometer calibration parameters.
-        self._acc_calibration_points = None
-        self._acc_calibration_errors = None
+        self._calibration_points = []
+        self._calibration_errors = None
 
-        self.acc_bias_vector = None
-        self.acc_scale_factor_matrix = None
+        self.bias_vector = None
+        self.scale_factor_matrix = None
 
     def add_points(self, points):
         """Add point(s) to the calibration procedure.
@@ -62,58 +114,25 @@ class Calibraxis(object):
                 if isinstance(points[0], (list, tuple, np.ndarray)):
                     # Multiple points sent as list of lists.
                     for p in points:
-                        self._points.append(p)
+                        self._calibration_points.append(p)
                 else:
                     # Assume single point sent in as list/tuple/array.
-                    self._points.append(points)
+                    self._calibration_points.append(points)
             else:
                 # Empty list/tuple. Skip.
                 pass
         elif isinstance(points, np.ndarray):
             if points.ndim > 1:
                 for p in points:
-                    self._points.append(p.copy())
+                    self._calibration_points.append(p.copy())
             elif points.ndim == 1:
-                self._points.append(points.copy())
+                self._calibration_points.append(points.copy())
 
     def calibrate_accelerometer(self):
-        """Perform calibration of accelerometer using stored points.
-
-        Computes the Zero G levels, Sensitivity, Scale factor Matrix and the
-        bias vector of a MEMS accelerometer.
-
-        The procedure exploits the fact that, in static conditions, the
-        modulus of the accelerometer output vector matches that of the
-        gravity acceleration. The calibration model incorporates the bias
-        and scale factor for each axis and the cross-axis symmetrical
-        factors. The parameters are computed through Gauss-Newton
-        nonlinear optimization.
-
-        The mathematical model used is  A = M(V - B)
-        where M and B are scale factor matrix and bias vector respectively.
-
-        M = [ Mxx Mxy Mxz; Myx Myy Myz; Mzx Mzy Mzz ]
-        where  Mxy = Myx; Myz = Mzy; Mxz = Mzx;
-        B = [ Bx; By; Bz ]
-
-        The diagonal elements of M represent the scale factors along the
-        three axes, whereas the other elements of M are called cross-axis
-        factors. These terms allow describing both the axes’ misalignment
-        and the crosstalk effect between different channels caused
-        by the sensor electronics. In an ideal world, M = 1; B = 0
-
-        Reference:
-        Iuri Frosio, Federico Pedersini, N. Alberto Borghese
-        "Autocalibration of MEMS Accelerometers"
-        IEEE TRANSACTIONS ON INSTRUMENTATION AND MEASUREMENT,
-        VOL. 58, NO. 6, JUNE 2009
-
-        This is a Python reimplementation of the Matlab routines found at
-        `Matlab File Central <http://se.mathworks.com/matlabcentral/fileexchange/
-        33252-mems-accelerometer-calibration-using-gauss-newton-method>`_.
-
+        """Perform the calibration of accelerometer using the
+        stored points.
         """
-        points = np.array(self._points)
+        points = np.array(self._calibration_points)
         self._perform_accelerometer_calibration_optimisation(points)
 
     def _perform_accelerometer_calibration_optimisation(self, points):
@@ -231,21 +250,21 @@ class Calibraxis(object):
         damping = 0.01    # Damping parameter - has to be less than 1.
         tolerance = 1e-12
         R_prior = 100000
-        self._acc_calibration_errors = []
+        self._calibration_errors = []
         nbr_iterations = 200
 
         # Initial Guess values of M and b.
-        if self.acc_bias_vector is not None:
+        if self.bias_vector is not None:
             # Recalibration using prior optimization results.
-            x = np.array([self.acc_scale_factor_matrix[0, 0],
-                          self.acc_scale_factor_matrix[0, 1],
-                          self.acc_scale_factor_matrix[0, 2],
-                          self.acc_scale_factor_matrix[1, 1],
-                          self.acc_scale_factor_matrix[1, 2],
-                          self.acc_scale_factor_matrix[2, 2],
-                          self.acc_bias_vector[0],
-                          self.acc_bias_vector[1],
-                          self.acc_bias_vector[2]])
+            x = np.array([self.scale_factor_matrix[0, 0],
+                          self.scale_factor_matrix[0, 1],
+                          self.scale_factor_matrix[0, 2],
+                          self.scale_factor_matrix[1, 1],
+                          self.scale_factor_matrix[1, 2],
+                          self.scale_factor_matrix[2, 2],
+                          self.bias_vector[0],
+                          self.bias_vector[1],
+                          self.bias_vector[2]])
         else:
             # Fresh calibration.
             sensitivity = 1 / np.sqrt((points ** 2).sum(axis=1)).mean()
@@ -286,13 +305,12 @@ class Calibraxis(object):
             # Iterations are stopped when the following
             # convergence criteria is satisfied.
             if abs(max(2 * (x - last_x) / (x + last_x))) <= tolerance:
-                self.acc_scale_factor_matrix, self.acc_bias_vector = \
-                    optvec_to_M_and_b(x)
+                self.scale_factor_matrix, self.bias_vector = optvec_to_M_and_b(x)
                 break
 
             last_x = x.copy()
             R_prior = R_post
-            self._acc_calibration_errors.append(R_post)
+            self._calibration_errors.append(R_post)
 
     def apply(self, acc_values):
         """Apply the calibration scale matrix and bias to accelerometer values.
@@ -302,8 +320,8 @@ class Calibraxis(object):
         :rtype: tuple
 
         """
-        converted_g_values = self.acc_scale_factor_matrix.dot(
-            np.array(acc_values) - self.acc_bias_vector)
+        converted_g_values = self.scale_factor_matrix.dot(
+            np.array(acc_values) - self.bias_vector)
         return tuple(converted_g_values.tolist())
 
     def batch_apply(self, acc_values):
