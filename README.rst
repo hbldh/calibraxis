@@ -21,7 +21,7 @@ Installation
 
 .. code:: bash
 
-    $ pip install git+git://github.com/hbldh/calibraxis.git
+    $ pip install calibraxis
 
 
 Usage
