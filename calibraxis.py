@@ -22,9 +22,9 @@ import six
 import numpy as np
 
 # Version information.
-__version__ = '0.2.0rc2'
+__version__ = '0.2.0'
 version = __version__  # backwards compatibility name
-version_info = (0, 2, 0, 'rc2')
+version_info = (0, 2, 0)
 
 
 class Calibraxis(object):
@@ -315,7 +315,7 @@ class Calibraxis(object):
     def apply(self, acc_values):
         """Apply the calibration scale matrix and bias to accelerometer values.
 
-        :param list, tuple, numpy.ndaray acc_values: The accelerometer data.
+        :param list, tuple, numpy.ndarray acc_values: The accelerometer data.
         :return: The transformed accelerometer values.
         :rtype: tuple
 
@@ -331,7 +331,7 @@ class Calibraxis(object):
         Assumes that the input is either a list or tuple containing three
         element lists, tuples or arrays or a [N x 3] NumPy array.
 
-        :param list, tuple, numpy.ndaray acc_values: The accelerometer data.
+        :param list, tuple, numpy.ndarray acc_values: The accelerometer data.
         :return: The transformed accelerometer values.
         :rtype: list
 
