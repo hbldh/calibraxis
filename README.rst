@@ -47,7 +47,7 @@ Usage
     c.calibrate_accelerometer()
 
     # Applying the calibration parameters to the calibration data.
-    c.apply(points[0 :])
+    c.apply(points[0,:])
     >>> (-0.9998374717802275, 0.018413117166568103, -0.015581921828828033)
     c.batch_apply(points)
     >>> [(-0.9998374717802275, 0.018413117166568103, -0.015581921828828033),
